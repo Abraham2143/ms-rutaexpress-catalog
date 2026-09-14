@@ -31,3 +31,15 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Local environment ###
+.env
+.env.*
+*.log
+
+### Oracle Wallet ###
+[Ww][Aa][Ll][Ll][Ee][Tt]*/
+[Ww][Aa][Ll][Ll][Ee][Tt]*.zip
+*.sso
+*.p12
+*.jks
