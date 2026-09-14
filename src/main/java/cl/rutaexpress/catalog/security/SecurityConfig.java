@@ -8,6 +8,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.server.resource.authentication.DelegatingJwtGrantedAuthoritiesConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
@@ -27,10 +28,10 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
                         .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
-                        .requestMatchers(HttpMethod.GET, SERVICES, SERVICES + "/{id}")
-                        .hasAnyRole("Admin", "Operador", "Cliente", "Auditor")
-                        .requestMatchers(HttpMethod.POST, SERVICES).hasRole("Admin")
-                        .requestMatchers(HttpMethod.PUT, SERVICES + "/{id}").hasRole("Admin")
+                        .requestMatchers(HttpMethod.GET, SERVICES, SERVICES + "/**")
+                        .hasAnyRole("ADMIN", "DISPATCHER", "CLIENT")
+                        .requestMatchers(HttpMethod.POST, SERVICES).hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, SERVICES + "/**").hasRole("ADMIN")
                         .anyRequest().denyAll())
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt ->
                         jwt.jwtAuthenticationConverter(jwtAuthenticationConverter)))
@@ -44,7 +45,8 @@ public class SecurityConfig {
         authoritiesConverter.setAuthorityPrefix("ROLE_");
 
         JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
-        converter.setJwtGrantedAuthoritiesConverter(authoritiesConverter);
+        converter.setJwtGrantedAuthoritiesConverter(new DelegatingJwtGrantedAuthoritiesConverter(
+                new JwtGrantedAuthoritiesConverter(), authoritiesConverter));
         return converter;
     }
 }

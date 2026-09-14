@@ -59,7 +59,7 @@ class ServicioControllerTests {
 
     @Test
     void adminPuedeCrearConLocationYRecurso() throws Exception {
-        tokenConRoles("Admin");
+        tokenConRoles("ADMIN");
         when(service.crear(any())).thenReturn(response);
 
         mvc.perform(post(URL).header("Authorization", "Bearer test-token")
@@ -77,7 +77,7 @@ class ServicioControllerTests {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"Admin", "Operador", "Cliente", "Auditor"})
+    @ValueSource(strings = {"ADMIN", "DISPATCHER", "CLIENT"})
     void rolesDelProyectoPuedenConsultarYListar(String rol) throws Exception {
         tokenConRoles(rol);
         when(service.obtenerPorId(1L)).thenReturn(response);
@@ -91,7 +91,7 @@ class ServicioControllerTests {
 
     @Test
     void adminPuedeActualizar() throws Exception {
-        tokenConRoles("Admin");
+        tokenConRoles("ADMIN");
         ServicioResponse actualizado = new ServicioResponse(1L, "Normal", null, BigDecimal.ZERO, 0, false);
         when(service.actualizar(eq(1L), any())).thenReturn(actualizado);
 
@@ -110,7 +110,7 @@ class ServicioControllerTests {
 
     @Test
     void consultarInexistenteDevuelve404() throws Exception {
-        tokenConRoles("Cliente");
+        tokenConRoles("CLIENT");
         when(service.obtenerPorId(99L)).thenThrow(new ResourceNotFoundException("No existe el servicio con id 99"));
 
         mvc.perform(get(URL + "/99").header("Authorization", "Bearer test-token"))
@@ -121,7 +121,7 @@ class ServicioControllerTests {
 
     @Test
     void actualizarInexistenteDevuelve404() throws Exception {
-        tokenConRoles("Admin");
+        tokenConRoles("ADMIN");
         when(service.actualizar(eq(99L), any())).thenThrow(new ResourceNotFoundException("No existe el servicio con id 99"));
 
         mvc.perform(put(URL + "/99").header("Authorization", "Bearer test-token")
@@ -139,7 +139,7 @@ class ServicioControllerTests {
             "{\"nombre\":\"Express\",\"tarifa\":1000000000000,\"capacidadDisponible\":0,\"activo\":true}"
     })
     void requestInvalidoDevuelve400SinInvocarService(String body) throws Exception {
-        tokenConRoles("Admin");
+        tokenConRoles("ADMIN");
 
         mvc.perform(post(URL).header("Authorization", "Bearer test-token")
                         .contentType(MediaType.APPLICATION_JSON).content(body))
@@ -153,7 +153,7 @@ class ServicioControllerTests {
 
     @Test
     void erroresDeValidacionIdentificanLosCampos() throws Exception {
-        tokenConRoles("Admin");
+        tokenConRoles("ADMIN");
 
         mvc.perform(post(URL).header("Authorization", "Bearer test-token")
                         .contentType(MediaType.APPLICATION_JSON).content("{}"))
@@ -167,7 +167,7 @@ class ServicioControllerTests {
 
     @Test
     void longitudesExcesivasDevuelven400() throws Exception {
-        tokenConRoles("Admin");
+        tokenConRoles("ADMIN");
         String body = VALID_REQUEST.replace("Entrega Express", "x".repeat(151))
                 .replace("Entrega durante el mismo dia", "x".repeat(1001));
 
@@ -181,7 +181,7 @@ class ServicioControllerTests {
 
     @Test
     void jsonMalformadoEIdNoNumericoDevuelven400() throws Exception {
-        tokenConRoles("Admin");
+        tokenConRoles("ADMIN");
 
         mvc.perform(post(URL).header("Authorization", "Bearer test-token")
                         .contentType(MediaType.APPLICATION_JSON).content("{"))
@@ -212,7 +212,7 @@ class ServicioControllerTests {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"Operador", "Cliente", "Auditor", "admin"})
+    @ValueSource(strings = {"DISPATCHER", "CLIENT", "AUDITOR", "admin"})
     void rolesSinPermisoDeEscrituraReciben403(String rol) throws Exception {
         tokenConRoles(rol);
 
@@ -226,17 +226,20 @@ class ServicioControllerTests {
     }
 
     @Test
-    void sinRolesNoPuedeLeer() throws Exception {
+    void scopeSinRolesNoConcedeLecturaNiEscritura() throws Exception {
         tokenConRoles();
 
         mvc.perform(get(URL).header("Authorization", "Bearer test-token"))
+                .andExpect(status().isForbidden());
+        mvc.perform(post(URL).header("Authorization", "Bearer test-token")
+                        .contentType(MediaType.APPLICATION_JSON).content(VALID_REQUEST))
                 .andExpect(status().isForbidden());
         verifyNoInteractions(service);
     }
 
     @Test
     void multiplesRolesConAdminPermitenEscritura() throws Exception {
-        tokenConRoles("Cliente", "Admin");
+        tokenConRoles("DISPATCHER", "ADMIN");
         when(service.crear(any())).thenReturn(response);
 
         mvc.perform(post(URL).header("Authorization", "Bearer test-token")
@@ -246,7 +249,7 @@ class ServicioControllerTests {
 
     @Test
     void noSeExponeEliminacionNiRutasAdicionales() throws Exception {
-        tokenConRoles("Admin");
+        tokenConRoles("ADMIN");
 
         mvc.perform(delete(URL + "/1").header("Authorization", "Bearer test-token"))
                 .andExpect(status().isForbidden());
@@ -257,7 +260,7 @@ class ServicioControllerTests {
 
     private void tokenConRoles(String... roles) {
         Jwt.Builder builder = Jwt.withTokenValue("test-token")
-                .header("alg", "RS256").subject("test-user");
+                .header("alg", "RS256").subject("test-user").claim("scp", "OT.Create");
         if (roles.length > 0) {
             builder.claim("roles", List.of(roles));
         }

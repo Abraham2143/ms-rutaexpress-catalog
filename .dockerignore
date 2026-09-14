@@ -1,0 +1,20 @@
+# Only send the files needed to compile and test this service.
+# This excludes target, .git, .idea, .env, logs and unrelated local files.
+**
+!pom.xml
+!src/
+!src/**/
+!src/**/*.java
+!src/main/resources/application.properties
+
+# Never include Oracle wallets, even under source directories.
+**/[Ww][Aa][Ll][Ll][Ee][Tt]*/
+**/[Ww][Aa][Ll][Ll][Ee][Tt]*/**
+**/*.sso
+**/*.p12
+**/*.jks
+**/*.pem
+**/*.key
+**/tnsnames.ora
+**/sqlnet.ora
+**/ojdbc.properties
