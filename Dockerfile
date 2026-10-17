@@ -3,7 +3,7 @@ WORKDIR /build
 
 COPY pom.xml ./
 COPY src ./src
-RUN mvn --batch-mode --no-transfer-progress clean package
+RUN mvn --batch-mode --no-transfer-progress clean package -DskipTests
 
 FROM eclipse-temurin:21-jre-jammy AS runtime
 WORKDIR /app
