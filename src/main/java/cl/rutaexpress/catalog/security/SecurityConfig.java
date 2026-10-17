@@ -25,7 +25,9 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
-                        .anyRequest().permitAll() // Permitir todas las peticiones internas
+                        // Permite libre acceso a todos los endpoints del catálogo sin requerir/validar JWT
+                        .requestMatchers("/api/catalog/**", "/actuator/**").permitAll()
+                        .anyRequest().permitAll()
                 )
                 .build();
     }
