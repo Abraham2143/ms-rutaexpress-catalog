@@ -61,4 +61,18 @@ public class ServicioServiceImpl implements ServicioService {
         return new ServicioResponse(servicio.getId(), servicio.getNombre(), servicio.getDescripcion(),
                 servicio.getTarifa(), servicio.getCapacidadDisponible(), servicio.getActivo());
     }
+
+    @Override
+    @Transactional
+    public void decrementarCapacidad(Long id, int cantidad) {
+        Servicio servicio = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Servicio no encontrado con id: " + id));
+
+        if (servicio.getCapacidadDisponible() < cantidad) {
+            throw new IllegalStateException("Capacidad insuficiente para el servicio: " + id);
+        }
+
+        servicio.setCapacidadDisponible(servicio.getCapacidadDisponible() - cantidad);
+        repository.save(servicio);
+    }
 }

@@ -13,4 +13,6 @@ public interface ServicioService {
     ServicioResponse crear(ServicioRequest request);
 
     ServicioResponse actualizar(Long id, ServicioRequest request);
+
+    void decrementarCapacidad(Long id, int quantity);
 }
