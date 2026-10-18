@@ -48,15 +48,14 @@ public class ServicioController {
         return service.actualizar(id, request);
     }
 
-    @PostMapping("/{id}/capacity")
+    @PostMapping("/{id}/capacity/decrement")
     public ResponseEntity<Void> decrementarCapacidad(
             @PathVariable Long id,
             @RequestBody CapacityRequest request) {
 
         service.decrementarCapacidad(id, request.quantity());
-        return ResponseEntity.noContent().build(); // Retorna 204 No Content
+        return ResponseEntity.noContent().build();
     }
 
-    // Record para recibir el Body del POST
     public record CapacityRequest(String shipmentTrackingNumber, int quantity) {}
 }
